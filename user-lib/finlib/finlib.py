@@ -95,3 +95,14 @@ def calculate_xirr(cash_flows, dates):
     xirr = calculate_xirr(cash_flows, dates)
     """
     return npf.xirr(cash_flows, dates)
+
+class FundMeta:
+    moniker = None
+    fund_name = None
+    url = None
+    
+    def __init__(self, moniker, fund_name, url):
+        self.moniker = moniker
+        self.fund_name = fund_name
+        self.url = url
+

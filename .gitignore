@@ -135,3 +135,6 @@ cython_debug/
 # Conda environments
 .env/
 .conda/
+
+# Personal Data
+data/MarketData/
