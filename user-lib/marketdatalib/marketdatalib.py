@@ -66,9 +66,9 @@ def get_nifty_index_data(start_date, end_date, index_name):
     # cinfo_json = json.dumps(cinfo_json)
 
     # Replace double quotes with single quotes
-    escaped_json_string = cinfo_json.replace('"', "'")
+    escaped_json_string = cinfo_json.replace('"', "\\'")
 
-    print(escaped_json_string)
+    # print(escaped_json_string)
 
     print({'cinfo': escaped_json_string})
 

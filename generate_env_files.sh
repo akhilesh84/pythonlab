@@ -12,7 +12,7 @@ ENV_NAME=$(conda info --envs | grep '*' | awk '{print $1}')
 
 # Export the conda environment to environment.yml
 echo "Exporting conda environment to environment.yml..."
-conda env export > environment.yml
+conda env export -n env > environment.yml
 
 # Extract pip dependencies from environment.yml and create requirements.txt
 echo "Generating requirements.txt from environment.yml..."
