@@ -37,7 +37,7 @@ def _get_cookie():
     }
 
     try:
-        response = requests.get('https://www.niftyindices.com/Backpage.aspx', headers=headers, timeout=10)  # Timeout in seconds
+        response = requests.get('https://www.niftyindices.com/Backpage.aspx', headers=headers)  # Timeout in seconds
         response.raise_for_status()  # Raise an exception for HTTP errors
     except requests.exceptions.Timeout:
         print("The request timed out")
@@ -53,24 +53,20 @@ def get_nifty_index_data(start_date, end_date, index_name):
     headers = {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0',
-        'Accept': '*/*'
+        'Accept': '*/*',
+        'Connection': 'keep-alive'
     }
 
     cinfo = CInfo(index_name, start_date, end_date, index_name)
 
-    # Convert the object to a dictionary
-    cinfo_dict = cinfo.to_dict()
+    cookies = _get_cookie()
+    
+    payload = '{{"cinfo":"{{\'name\':\'{name}\',\'startDate\':\'{start_date}\',\'endDate\':\'{end_date}\',\'indexName\':\'{index_name}\'}}"}}'.format(
+    name=cinfo.index_name, start_date=cinfo.start_date, end_date=cinfo.end_date, index_name=cinfo.index_name)
 
-    # Convert the dictionary to a JSON string
-    cinfo_json = json.dumps(cinfo_dict)
-    # cinfo_json = json.dumps(cinfo_json)
+    print("Payload: ", payload)
 
-    # Replace double quotes with single quotes
-    escaped_json_string = cinfo_json #.replace('"', "\'")
+    print("Cookies: ", cookies)
 
-    # print(escaped_json_string)
-
-    print({'cinfo': escaped_json_string})
-
-    response = requests.post(_nifty_history_url, headers=headers, cookies=_get_cookie(), data={'cinfo': escaped_json_string})
+    response = requests.post(_nifty_history_url, headers=headers, data=payload, cookies=cookies)
     return response.json()
