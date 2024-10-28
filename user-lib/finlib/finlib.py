@@ -1,3 +1,4 @@
+import numpy as np
 import numpy_financial as npf
 from datetime import datetime
 # import yfinance as yf
@@ -95,6 +96,37 @@ def calculate_xirr(cash_flows, dates):
     xirr = calculate_xirr(cash_flows, dates)
     """
     return npf.xirr(cash_flows, dates)
+
+def calculate_sharpe_ratio(prices, risk_free_rate):
+    # Calculate daily returns
+    daily_returns = prices[1:] / prices[:-1] - 1
+    
+    # Calculate average daily return
+    avg_daily_return = np.mean(daily_returns)
+    
+    # Calculate standard deviation of daily returns
+    std_daily_return = np.std(daily_returns)
+    
+    # Annualize the average daily return and standard deviation
+    annualized_return = (1 + avg_daily_return) ** 252 - 1
+    annualized_std = std_daily_return * np.sqrt(252)
+    
+    # Calculate Sharpe Ratio
+    sharpe_ratio = (annualized_return - risk_free_rate) / annualized_std
+    
+    return sharpe_ratio
+
+def calculate_annualized_return(prices):
+    # Calculate daily returns
+    daily_returns = prices[1:] / prices[:-1] - 1
+    
+    # Calculate average daily return
+    avg_daily_return = np.mean(daily_returns)
+    
+    # Annualize the average daily return
+    annualized_return = (1 + avg_daily_return) ** 252 - 1
+    
+    return annualized_return
 
 class FundMeta:
     moniker = None

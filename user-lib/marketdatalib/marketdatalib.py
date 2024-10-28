@@ -1,5 +1,6 @@
 import requests
-import json
+import yfinance as yf
+
 
 _nifty_history_url = 'https://www.niftyindices.com/Backpage.aspx/getHistoricaldatatabletoString'
 
@@ -70,3 +71,12 @@ def get_nifty_index_data(start_date, end_date, index_name):
 
     response = requests.post(_nifty_history_url, headers=headers, data=payload, cookies=cookies)
     return response.json()
+
+def map_scrip_to_yfin_ticker(scrip: str, exchange: str = 'NSE') -> tuple[str, yf.Ticker]:
+    """
+    Map scrip to yfinance ticker.
+    """
+    extension = '.NS'
+    if exchange == 'BSE': extension = '.BO'
+
+    return (scrip, yf.Ticker(scrip + extension))
