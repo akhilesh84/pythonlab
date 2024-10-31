@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import requests
 import yfinance as yf
 
@@ -28,49 +32,42 @@ class CInfo:
                 f"'endDate':'{self.end_date}', 'indexName':'{self.index_name}'}}")
 
 
-def _get_cookie():
-    """
-    Get cookie from the website.
-    """
-    headers = {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': '*/*'
-    }
+def get_nifty_index_data(index_name: str, number_of_years: int = 5) -> pd.DataFrame:
+    today = datetime.today()
+    enddate = startdate = today - relativedelta(years=number_of_years)
+    # enddate = min(startdate + relativedelta(years=1), today)
 
-    try:
-        response = requests.get('https://www.niftyindices.com/Backpage.aspx', headers=headers)  # Timeout in seconds
-        response.raise_for_status()  # Raise an exception for HTTP errors
-    except requests.exceptions.Timeout:
-        print("The request timed out")
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+    base_url = f'https://www.nseindia.com/api/historical/indicesHistory?indexType={index_name}&from={{}}&to={{}}'
+    nifty_data = pd.DataFrame()
 
-    return response.cookies
+    with requests.sessions.Session() as session:
+        session.headers.update({"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"})
+        
+        # Get cookies in the session. The cokies will be sent in subsequent requests.
+        session.get("https://www.nseindia.com/")
 
-def get_nifty_index_data(start_date, end_date, index_name):
-    """
-    Get Nifty index data for the given date range and index name.
-    """
-    headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': '*/*',
-        'Connection': 'keep-alive'
-    }
+        while enddate < today:
+            enddate = min(startdate + relativedelta(years=1), today)
+            request_url = base_url.format(startdate.strftime("%d-%m-%Y"), enddate.strftime("%d-%m-%Y"))
+            
+            pricing_data_json = session.get(request_url).json()['data']['indexCloseOnlineRecords']
+            pricing_data = pd.DataFrame.from_dict(pricing_data_json)
+            nifty_data = pd.concat([nifty_data, pricing_data], ignore_index=False, axis=0)
 
-    cinfo = CInfo(index_name, start_date, end_date, index_name)
+            startdate = enddate + relativedelta(days=1)
 
-    cookies = _get_cookie()
-    
-    payload = '{{"cinfo":"{{\'name\':\'{name}\',\'startDate\':\'{start_date}\',\'endDate\':\'{end_date}\',\'indexName\':\'{index_name}\'}}"}}'.format(
-    name=cinfo.index_name, start_date=cinfo.start_date, end_date=cinfo.end_date, index_name=cinfo.index_name)
+    # Now that we have a raw dataframe, the next step is to clean it up and convert it into a format that we can use.
+    # Drop unnecessary columns
+    nifty_data.drop(columns=['_id', 'EOD_INDEX_NAME', 'TIMESTAMP'], inplace=True)
+    # Map column names to new values
 
-    print("Payload: ", payload)
+    nifty_data.rename(columns= {'EOD_TIMESTAMP': 'Date', 'EOD_OPEN_INDEX_VAL': 'Open', 'EOD_HIGH_INDEX_VAL': 'High', 'EOD_LOW_INDEX_VAL': 'Low', 'EOD_CLOSE_INDEX_VAL': 'Close'}, inplace=True)
+    nifty_data.set_index('Date', inplace=True)
+    # Convert the date column to datetime. The date is in the format 'dd-mmm-YYYY'
+    nifty_data.index = pd.to_datetime(nifty_data.index, format='%d-%b-%Y')
+    nifty_data.sort_index(inplace=True)
 
-    print("Cookies: ", cookies)
-
-    response = requests.post(_nifty_history_url, headers=headers, data=payload, cookies=cookies)
-    return response.json()
+    return pd.DataFrame(nifty_data)
 
 def map_scrip_to_yfin_ticker(scrip: str, exchange: str = 'NSE') -> tuple[str, yf.Ticker]:
     """
@@ -80,3 +77,18 @@ def map_scrip_to_yfin_ticker(scrip: str, exchange: str = 'NSE') -> tuple[str, yf
     if exchange == 'BSE': extension = '.BO'
 
     return (scrip, yf.Ticker(scrip + extension))
+
+def calculate_beta(stock_returns, benchmark_returns):
+    # Calculate covariance matrix between stock returns and benchmark returns
+    covariance_matrix = np.cov(stock_returns, benchmark_returns)
+    
+    # Extract the covariance between stock returns and benchmark returns
+    covariance = covariance_matrix[0, 1]
+    
+    # Calculate variance of benchmark returns
+    variance = np.var(benchmark_returns)
+    
+    # Calculate Beta
+    beta = covariance / variance
+    
+    return beta

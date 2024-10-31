@@ -125,6 +125,7 @@ riskfolio-lib=6.2.2=py312h28f332c_0
 scikit-learn=1.5.1=py312h77d3abe_0
 scipy=1.13.1=py312hff39f35_0
 scs=3.2.7=default_py312hbed497b_1
+seaborn=0.13.2=py312hecd8cb5_0
 setuptools=72.1.0=py312hecd8cb5_0
 six=1.16.0=pyhd3eb1b0_1
 soupsieve=2.5=py312hecd8cb5_0
