@@ -4,5 +4,5 @@ import requests
 session = requests.Session()
 print("Session proxies:", session.proxies)
 
-respnse = get_nifty_index_data('01-Jan-2013', '01-Jan-2024', 'NIFTY 500')
+respnse = get_nifty_index_data('NIFTYBEES.NS', 5)
 print(respnse)
