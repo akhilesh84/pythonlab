@@ -51,33 +51,19 @@ def calculate_real_interest_rate(nominal_interest_rate, inflation_rate):
     real_interest_rate = (nominal_interest_rate - inflation_rate) / (1 + inflation_rate)
     return real_interest_rate
 
-def calculate_cagr(beginning_value, ending_value, years):
-    """
-    Calculate the compound annual growth rate (CAGR) of an investment.
-
-    Parameters:
-    beginning_value: float - The beginning value of the investment
-    ending_value: float - The ending value of the investment
-
-    Returns:
-    float - The compound annual growth rate (CAGR) of the investment
-    """
-    return (ending_value / beginning_value) ** (1/years) - 1
-
-def calculate_cagr_from_cash_flows(cash_flows):
-    """
-    Calculate the compound annual growth rate (CAGR) of an investment given a list of cash flows.
-
-    Parameters:
-    cash_flows: list - A list of cash flows for the investment
-
-    Returns:
-    float - The compound annual growth rate (CAGR) of the investment
-    """
-    beginning_value = cash_flows[0]
-    ending_value = cash_flows[-1]
-    years = len(cash_flows) - 1
-    return calculate_cagr(beginning_value, ending_value, years)
+def calculate_cagr(cash_flows, dates, end_value):
+    # Calculate the total invested amount
+    total_invested = sum(cash_flows)
+    
+    # Calculate the number of years for each cash flow
+    years = [(dates[-1] - date).days / 365.0 for date in dates]
+    
+    # Calculate the weighted average of the invested amounts over time
+    weighted_invested = sum(cf * year for cf, year in zip(cash_flows, years)) / total_invested
+    
+    # Calculate the CAGR
+    cagr = (end_value / total_invested) ** (1 / weighted_invested) - 1
+    return cagr
 
 def calculate_xirr(cash_flows, dates):
     """
