@@ -1,7 +1,10 @@
 import numpy as np
 import numpy_financial as npf
 from datetime import datetime
-# import yfinance as yf
+from babel.numbers import format_currency
+
+def format_inr(amount):
+    return format_currency(amount, 'INR', locale='en_IN')
 
 # # Function to get market capitalization of a stock
 # def get_market_cap(stock_code):
