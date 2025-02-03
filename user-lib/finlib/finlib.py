@@ -2,6 +2,7 @@ import numpy as np
 import numpy_financial as npf
 from datetime import datetime
 from babel.numbers import format_currency
+from matplotlib import pyplot as plt
 
 def format_inr(amount):
     return format_currency(amount, 'INR', locale='en_IN')
@@ -117,6 +118,21 @@ def calculate_annualized_return(prices):
     
     return annualized_return
 
+def calculate_beta(stock_returns, benchmark_returns):
+    # Calculate covariance matrix between stock returns and benchmark returns
+    covariance_matrix = np.cov(stock_returns, benchmark_returns)
+    
+    # Extract the covariance between stock returns and benchmark returns
+    covariance = covariance_matrix[0, 1]
+    
+    # Calculate variance of benchmark returns
+    variance = np.var(benchmark_returns)
+    
+    # Calculate Beta
+    beta = covariance / variance
+    
+    return beta
+
 class FundMeta:
     moniker = None
     fund_name = None
@@ -127,3 +143,63 @@ class FundMeta:
         self.fund_name = fund_name
         self.url = url
 
+def expected_portfolio_return(weights, returns):
+    """
+    Calculate the expected return of a portfolio.
+
+    :param weights: List of weights of the assets in the portfolio. 
+                    The weights should sum to 1.
+    :param returns: List of expected returns of the assets in the portfolio.
+    :return: Expected return of the portfolio.
+    """
+    if len(weights) != len(returns):
+        raise ValueError("The number of weights must match the number of returns")
+    
+    if not (0.999 <= sum(weights) <= 1.001):
+        raise ValueError("The sum of the weights must be 1")
+    
+    portfolio_return = sum(w * r for w, r in zip(weights, returns))
+    return portfolio_return
+
+def efficient_frontier(risk_free_rate, market_returns):
+    """
+    Plot the efficient frontier given a risk-free rate and market returns.
+    
+    :param risk_free_rate: The risk-free rate of return.
+    :param market_returns: Array of historical returns of the market-linked security.
+    """
+
+    def calculate_statistics(returns):
+        """
+        Calculate the expected return and standard deviation of returns.
+        
+        :param returns: Array of historical returns.
+        :return: Tuple of expected return and standard deviation.
+        """
+        expected_return = np.mean(returns)
+        std_dev = np.std(returns)
+        return expected_return, std_dev
+
+    market_expected_return, market_std_dev = calculate_statistics(market_returns)
+    
+    weights = np.linspace(0, 1, 100)
+    portfolio_returns = []
+    portfolio_risks = []
+    
+    for w in weights:
+        portfolio_return = risk_free_rate + w * ( market_expected_return -  risk_free_rate)
+        portfolio_risk = w * market_std_dev
+        portfolio_returns.append(portfolio_return)
+        portfolio_risks.append(portfolio_risk)
+    
+    plt.figure(figsize=(12, 10))
+    plt.scatter(portfolio_risks, portfolio_returns, c='blue', marker='o', label='Efficient Frontier')
+    plt.plot(portfolio_risks, portfolio_returns, c='blue')
+    plt.xlabel('Risk (Standard Deviation)')
+    plt.ylabel('Expected Return')
+    plt.title('Efficient Frontier with Risk-Free Asset')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    return zip(weights, portfolio_returns, portfolio_risks)

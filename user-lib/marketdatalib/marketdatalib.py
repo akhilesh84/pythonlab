@@ -77,18 +77,3 @@ def map_scrip_to_yfin_ticker(scrip: str, exchange: str = 'NSE') -> tuple[str, yf
     if exchange == 'BSE': extension = '.BO'
 
     return (scrip, yf.Ticker(scrip + extension))
-
-def calculate_beta(stock_returns, benchmark_returns):
-    # Calculate covariance matrix between stock returns and benchmark returns
-    covariance_matrix = np.cov(stock_returns, benchmark_returns)
-    
-    # Extract the covariance between stock returns and benchmark returns
-    covariance = covariance_matrix[0, 1]
-    
-    # Calculate variance of benchmark returns
-    variance = np.var(benchmark_returns)
-    
-    # Calculate Beta
-    beta = covariance / variance
-    
-    return beta
