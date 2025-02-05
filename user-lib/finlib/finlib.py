@@ -69,6 +69,26 @@ def calculate_cagr(cash_flows, dates, end_value):
     cagr = (end_value / total_invested) ** (1 / weighted_invested) - 1
     return cagr
 
+def calculate_cagr_of_security(closing_prices):
+    """
+    Calculate the Compound Annual Growth Rate (CAGR) of a security from historical data.
+    
+    :param closing_prices: Series containing historical closing price data with a DateTime index.
+    :return: CAGR value in percentage.
+    """
+    
+    # Calculate the total return
+    beginning_value = closing_prices.iloc[0]
+    ending_value = closing_prices.iloc[-1]
+    total_return = ending_value / beginning_value
+
+    # Calculate the number of years
+    num_years = (closing_prices.index[-1] - closing_prices.index[0]).days / 365.25
+
+    # Compute the CAGR
+    cagr = (total_return ** (1 / num_years)) - 1
+    return cagr * 100
+
 def calculate_xirr(cash_flows, dates):
     """
     Calculate the internal rate of return (IRR) for a series of cash flows that might not be periodic.
@@ -161,7 +181,7 @@ def expected_portfolio_return(weights, returns):
     portfolio_return = sum(w * r for w, r in zip(weights, returns))
     return portfolio_return
 
-def efficient_frontier(risk_free_rate, market_returns):
+def plot_capital_market_line(risk_free_rate, market_returns, max_volatility):
     """
     Plot the efficient frontier given a risk-free rate and market returns.
     
@@ -189,8 +209,9 @@ def efficient_frontier(risk_free_rate, market_returns):
     for w in weights:
         portfolio_return = risk_free_rate + w * ( market_expected_return -  risk_free_rate)
         portfolio_risk = w * market_std_dev
-        portfolio_returns.append(portfolio_return)
-        portfolio_risks.append(portfolio_risk)
+        if portfolio_risk <= max_volatility:
+            portfolio_returns.append(portfolio_return)
+            portfolio_risks.append(portfolio_risk)
     
     plt.figure(figsize=(12, 10))
     plt.scatter(portfolio_risks, portfolio_returns, c='blue', marker='o', label='Efficient Frontier')
