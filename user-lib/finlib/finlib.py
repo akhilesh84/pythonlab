@@ -214,7 +214,7 @@ def plot_capital_market_line(risk_free_rate, market_returns, max_volatility):
             portfolio_risks.append(portfolio_risk)
     
     plt.figure(figsize=(12, 10))
-    plt.scatter(portfolio_risks, portfolio_returns, c='blue', marker='o', label='Efficient Frontier')
+    plt.scatter(portfolio_risks, portfolio_returns, c='blue', marker='o', label='Capital market line')
     plt.plot(portfolio_risks, portfolio_returns, c='blue')
     plt.xlabel('Risk (Standard Deviation)')
     plt.ylabel('Expected Return')
